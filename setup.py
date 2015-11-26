@@ -29,7 +29,6 @@
 
 from setuptools import setup, find_packages
 from pkg_resources import parse_version
-import conf_system_globals
 
 setup(
     name = "template-helper",
