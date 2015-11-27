@@ -33,5 +33,5 @@ from pkg_resources import parse_version
 setup(
     name = "template-helper",
     version = "1.0",
-    packages = find_packages(),
+    packages = ["."],
 )
