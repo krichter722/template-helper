@@ -80,6 +80,8 @@ def write_template_file(tmpl, target, check_output=True, meld=meld_default):
     accepts file paths as argument) if the two don't match.
     """
     tmpl_str = str(tmpl)
+    if os.path.exists(target) and os.path.isdir(target):
+        raise ValueError("target '%s' exists and is a directory" % (target,))
     if check_output and os.path.exists(target):
         target_file = open(target, "r")
         target_file_content = target_file.read()
