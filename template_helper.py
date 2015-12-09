@@ -70,6 +70,19 @@ def template_header(tmpl_file_path):
             ret_value += " #\n"
     return ret_value
 
+def template_header_xml(tmpl_file_path):
+    ret_value = ""
+    remaining = tmpl_file_path
+    while len(remaining) > 0:
+        if len(remaining) < 80:
+            ret_value += remaining
+            remaining = ""
+        else:
+            ret_value += remaining[:80]
+            remaining = remaining[80:]
+            ret_value += "\n"
+    return ret_value
+
 
 def write_template_file(tmpl, target, check_output=True, meld=meld_default):
     """generates a `str` from tmpl and writes it into the path pointed to by
