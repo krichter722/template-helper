@@ -31,6 +31,9 @@ import os
 import logging
 import tempfile
 import subprocess as sp
+import python_essentials
+import python_essentials.lib
+import python_essentials.lib.os_utils as os_utils
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -38,7 +41,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 logger.addHandler(ch)
 
-meld_default = "meld"
+difftool_default = "meld"
 
 def template_header(tmpl_file_path):
     """
@@ -70,15 +73,17 @@ def template_header(tmpl_file_path):
             ret_value += " #\n"
     return ret_value
 
-
-def write_template_file(tmpl, target, check_output=True, meld=meld_default):
+def write_template_file(tmpl, target, check_output=True, difftool=difftool_default):
     """generates a `str` from tmpl and writes it into the path pointed to by
     `target`. If `check_output` is `True` and the file pointed to by
     `target` exists its content is compared to the generated `str` and the
-    `meld` command is invoked with the file pointed to by `target` and the
+    `difftool` command is invoked with the file pointed to by `target` and the
     generated `str` written into a temporary file (because `melt` only
     accepts file paths as argument) if the two don't match.
     """
+    # check whether difftool exists and is executable
+    if os_utils.which(difftool) is None:
+        raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
     tmpl_str = str(tmpl)
     if os.path.exists(target) and os.path.isdir(target):
         raise ValueError("target '%s' exists and is a directory" % (target,))
@@ -87,12 +92,12 @@ def write_template_file(tmpl, target, check_output=True, meld=meld_default):
         target_file_content = target_file.read()
         target_file.close()
         if tmpl_str != target_file_content:
-            logger.warn("template content doesn't match with content of existing target file '%s', opening meld in order to investigate" % (target,))
+            logger.warn("template content doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
             tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
-            logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to meld" % (target, tmpl_str_temp_file_path,))
+            logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
             os.write(tmpl_str_temp_file, tmpl_str)
             os.close(tmpl_str_temp_file)
-            sp.check_call([meld, target, tmpl_str_temp_file_path])
+            sp.check_call([difftool, target, tmpl_str_temp_file_path])
             answer = None
             while answer != "y" and answer != "n":
                 answer = raw_input("Proceed with script (y/n)? ")
