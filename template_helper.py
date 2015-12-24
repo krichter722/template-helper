@@ -111,7 +111,9 @@ def write_template_file(tmpl, target, check_output=True, difftool=difftool_defau
             logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
             os.write(tmpl_str_temp_file, tmpl_str)
             os.close(tmpl_str_temp_file)
-            sp.check_call([difftool, target, tmpl_str_temp_file_path])
+            difftool_cmds = [difftool, target, tmpl_str_temp_file_path]
+            logger.info("invoking difftool command '%s' in order to visualize changes" % (str.join(" ", difftool_cmds),))
+            sp.check_call()
             answer = None
             while answer != "y" and answer != "n":
                 answer = raw_input("Proceed with script (y/n)? ")
