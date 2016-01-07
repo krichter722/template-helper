@@ -87,8 +87,8 @@ def template_header_xml(tmpl_file_path):
     return ret_value
 
 
-def write_template_file(tmpl, target, check_output=True, difftool=difftool_default):
-    """generates a `str` from tmpl and writes it into the path pointed to by
+def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_default):
+    """writes `tmpl_str` into the path pointed to by
     `target`. If `check_output` is `True` and the file pointed to by
     `target` exists its content is compared to the generated `str` and the
     `difftool` command is invoked with the file pointed to by `target` and the
@@ -98,7 +98,6 @@ def write_template_file(tmpl, target, check_output=True, difftool=difftool_defau
     # check whether difftool exists and is executable
     if os_utils.which(difftool) is None:
         raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
-    tmpl_str = str(tmpl)
     if os.path.exists(target) and os.path.isdir(target):
         raise ValueError("target '%s' exists and is a directory" % (target,))
     if check_output and os.path.exists(target):
