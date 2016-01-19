@@ -33,5 +33,6 @@ from pkg_resources import parse_version
 setup(
     name = "template-helper",
     version_command = ("git describe --tags", "pep440-git"),
+    setup_requires = ["setuptools-version-command>=2.2"],
     packages = ["."],
 )
