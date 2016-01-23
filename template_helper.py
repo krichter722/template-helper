@@ -112,7 +112,7 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
             os.close(tmpl_str_temp_file)
             difftool_cmds = [difftool, target, tmpl_str_temp_file_path]
             logger.info("invoking difftool command '%s' in order to visualize changes" % (str.join(" ", difftool_cmds),))
-            sp.check_call()
+            sp.check_call(difftool_cmds)
             answer = None
             while answer != "y" and answer != "n":
                 answer = raw_input("Proceed with script (y/n)? ")
