@@ -95,9 +95,7 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
     generated `str` written into a temporary file (because `melt` only
     accepts file paths as argument) if the two don't match.
     """
-    # check whether difftool exists and is executable
-    if os_utils.which(difftool) is None:
-        raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
+    # check existence and executability of difftool only if needed
     if os.path.exists(target) and os.path.isdir(target):
         raise ValueError("target '%s' exists and is a directory" % (target,))
     if check_output and os.path.exists(target):
@@ -105,6 +103,9 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
         target_file_content = target_file.read()
         target_file.close()
         if tmpl_str != target_file_content:
+            # check whether difftool exists and is executable
+            if os_utils.which(difftool) is None:
+                raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
             logger.warn("template content doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
             tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
             logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
