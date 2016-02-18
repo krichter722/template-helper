@@ -119,7 +119,10 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
                 answer = raw_input("Proceed with script (y/n)? ")
             if answer == "n":
                 raise RuntimeError("Aborted by user")
-    t_file = open(target, "w") # open target for writing after opening and
+    target_parent = os.path.dirname(target)
+    if not os.path.exists(target_parent):
+        os.makedirs(target_parent)
+    t_file = open(target, "w+") # open target for writing after opening and
         # closing it for reading
     t_file.write(tmpl_str)
     t_file.flush()
