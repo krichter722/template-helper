@@ -35,4 +35,11 @@ setup(
     version_command = ("git describe --tags", "pep440-git"),
     setup_requires = ["setuptools-version-command>=2.2"],
     packages = ["."],
+
+    # metadata for upload to PyPI
+    author = "Karl-Philipp Richter",
+    author_email = "krichter722@aol.de",
+    description = "A helper to create overwrite warnings for template output and provide a check for changes and options to review it with a diff tool",
+    license = "GPLv3",
+    keywords = "template diff",
 )
