@@ -61,7 +61,7 @@ def template_header(tmpl_file_path, symbol="#"):
     ret_value = ""
     remaining = tmpl_file_path
     while len(remaining) > 0:
-        ret_value += "% " % (symbol,)
+        ret_value += "%s " % (symbol,)
         if len(remaining) < 80-2-2:
             ret_value += remaining
             ret_value += " "*(80-2-2-len(remaining))
