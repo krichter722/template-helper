@@ -43,7 +43,7 @@ logger.addHandler(ch)
 
 difftool_default = "meld"
 
-def template_header(tmpl_file_path):
+def template_header(tmpl_file_path, symbol="#"):
     """
     Generates line breaks for a one or multiline path statement in the "Don't
     modify statement" in a template output file. Rather than dealing with an
@@ -61,16 +61,16 @@ def template_header(tmpl_file_path):
     ret_value = ""
     remaining = tmpl_file_path
     while len(remaining) > 0:
-        ret_value += "# "
+        ret_value += "% " % (symbol,)
         if len(remaining) < 80-2-2:
             ret_value += remaining
             ret_value += " "*(80-2-2-len(remaining))
             remaining = ""
-            ret_value += " #"
+            ret_value += " %s" % (symbol,)
         else:
             ret_value += remaining[:80-2-2]
             remaining = remaining[80-2-2:]
-            ret_value += " #\n"
+            ret_value += " %s\n" % (symbol,)
     return ret_value
 
 def template_header_xml(tmpl_file_path):
