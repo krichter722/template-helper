@@ -27,11 +27,14 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 from setuptools import setup, find_packages
 from pkg_resources import parse_version
 
 setup(
     name = "template-helper",
-    version_command = ("git describe --tags", "pep440-git"),
-    packages = ["."],
+    version_command = ("git describe --tags", "pep440-git-local"),
+    setup_requires = ["setuptools-version-command"],
+    zip_safe = True,
+    packages = find_packages(),
 )

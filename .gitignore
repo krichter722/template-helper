@@ -2,3 +2,4 @@ build/
 dist/
 template_helper.egg-info/
 __init__.pyc
+.eggs/
