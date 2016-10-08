@@ -43,7 +43,7 @@ logger.addHandler(ch)
 
 difftool_default = "meld"
 
-def template_header(tmpl_file_path):
+def template_header(tmpl_file_path, symbol="#"):
     """
     Generates line breaks for a one or multiline path statement in the "Don't
     modify statement" in a template output file. Rather than dealing with an
@@ -61,16 +61,16 @@ def template_header(tmpl_file_path):
     ret_value = ""
     remaining = tmpl_file_path
     while len(remaining) > 0:
-        ret_value += "# "
+        ret_value += "%s " % (symbol,)
         if len(remaining) < 80-2-2:
             ret_value += remaining
             ret_value += " "*(80-2-2-len(remaining))
             remaining = ""
-            ret_value += " #"
+            ret_value += " %s" % (symbol,)
         else:
             ret_value += remaining[:80-2-2]
             remaining = remaining[80-2-2:]
-            ret_value += " #\n"
+            ret_value += " %s\n" % (symbol,)
     return ret_value
 
 def template_header_xml(tmpl_file_path):
@@ -95,9 +95,7 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
     generated `str` written into a temporary file (because `melt` only
     accepts file paths as argument) if the two don't match.
     """
-    # check whether difftool exists and is executable
-    if os_utils.which(difftool) is None:
-        raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
+    # check existence and executability of difftool only if needed
     if os.path.exists(target) and os.path.isdir(target):
         raise ValueError("target '%s' exists and is a directory" % (target,))
     if check_output and os.path.exists(target):
@@ -105,6 +103,9 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
         target_file_content = target_file.read()
         target_file.close()
         if tmpl_str != target_file_content:
+            # check whether difftool exists and is executable
+            if os_utils.which(difftool) is None:
+                raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
             logger.warn("template content doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
             tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
             logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
@@ -118,7 +119,10 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
                 answer = raw_input("Proceed with script (y/n)? ")
             if answer == "n":
                 raise RuntimeError("Aborted by user")
-    t_file = open(target, "w") # open target for writing after opening and
+    target_parent = os.path.dirname(target)
+    if not os.path.exists(target_parent):
+        os.makedirs(target_parent)
+    t_file = open(target, "w+") # open target for writing after opening and
         # closing it for reading
     t_file.write(tmpl_str)
     t_file.flush()

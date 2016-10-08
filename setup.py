@@ -27,14 +27,20 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from setuptools import setup, find_packages
 from pkg_resources import parse_version
 
 setup(
     name = "template-helper",
     version_command = ("git describe --tags", "pep440-git-local"),
+    packages = find_packages(),
     setup_requires = ["setuptools-version-command"],
     zip_safe = True,
-    packages = find_packages(),
+
+    # metadata for upload to PyPI
+    author = "Karl-Philipp Richter",
+    author_email = "krichter722@aol.de",
+    description = "A helper to create overwrite warnings for template output and provide a check for changes and options to review it with a diff tool",
+    license = "GPLv3",
+    keywords = "template diff",
 )
