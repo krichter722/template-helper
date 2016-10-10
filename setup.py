@@ -36,6 +36,7 @@ setup(
     packages = find_packages(),
     setup_requires = ["setuptools-version-command"],
     zip_safe = True,
+    test_suite = "tests",
 
     # metadata for upload to PyPI
     author = "Karl-Philipp Richter",
