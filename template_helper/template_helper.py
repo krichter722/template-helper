@@ -130,30 +130,41 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
                 os.close(tmpl_str_temp_file)
                 __handle_diff__(target, tmpl_str_temp_file_path)
         else:
+            # search for one or more (sequential) lines which match pathes_re and the surrounding comment symbols; fail if another line matching the pattern is found
             target_file_lines = target_file_content.split("\n")
             tmpl_str_lines = tmpl_str.split("\n")
-            pathes_re_complete = "%s %s[\\W]+%s" % (comment_symbol, pathes_re, comment_symbol)
+            pathes_re_complete = "%s %s/?[\\s]+%s" % (comment_symbol, pathes_re, comment_symbol)
             target_match_found = False
             tmpl_match_found = False
+            target_preceeding_match = False # whether the preceeding line has been a match (necessary to solve context sensitive problem based on lines)
+            tmpl_preceeding_match = False
+            target_file_lines0 = []
+            tmpl_str_lines0 = []
             for target_file_line in target_file_lines:
-               if re.match(pathes_re_complete, target_file_line) != None:
-                   target_file_lines.pop(target_file_lines.index(target_file_line))
-                   if target_match_found:
-                       raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
-                   target_match_found = True
+                if re.match(pathes_re_complete, target_file_line) is None:
+                    target_file_lines0.append(target_file_line)
+                    target_preceeding_match = False
+                else:
+                    target_preceeding_match = True
+                    if target_match_found and not target_preceeding_match:
+                        raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
+                    target_match_found = True
             for tmpl_str_line in tmpl_str_lines:
-               if re.match(pathes_re_complete, tmpl_str_line) != None:
-                   tmpl_str_lines.pop(tmpl_str_lines.index(tmpl_str_line))
-                   if tmpl_match_found:
-                       raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
-                   tmpl_match_found = True
-            if target_file_lines != tmpl_str_lines:
+                if re.match(pathes_re_complete, tmpl_str_line) is None:
+                    tmpl_str_lines0.append(tmpl_str_line)
+                    tmpl_preceeding_match = False
+                else:
+                    tmpl_preceeding_match = True
+                    if tmpl_match_found and not tmpl_preceeding_match:
+                        raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
+                    tmpl_match_found = True
+            if target_file_lines0 != tmpl_str_lines0:
                 target_lines_tmp_file_path = tempfile.mkstemp()[1]
                 tmpl_lines_tmp_file_path = tempfile.mkstemp()[1]
                 target_lines_tmp_file = open(target_lines_tmp_file_path, "w")
                 tmpl_lines_tmp_file = open(tmpl_lines_tmp_file_path, "w")
-                target_lines_tmp_file.writelines([i+"\n" for i in target_file_lines])
-                tmpl_lines_tmp_file.writelines([i+"\n" for i in tmpl_str_lines])
+                target_lines_tmp_file.writelines([i+"\n" for i in target_file_lines0])
+                tmpl_lines_tmp_file.writelines([i+"\n" for i in tmpl_str_lines0])
                 target_lines_tmp_file.close()
                 tmpl_lines_tmp_file.close()
                 __handle_diff__(target_lines_tmp_file_path, tmpl_lines_tmp_file_path)
