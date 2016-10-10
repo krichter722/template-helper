@@ -28,7 +28,10 @@
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
 import unittest
+import sys
+sys.path.append("template_helper")
 import template_helper
+import tempfile
 
 class Test(unittest.TestCase):
 
@@ -48,6 +51,35 @@ class Test(unittest.TestCase):
         result = template_helper.template_header("0123456789"*30)
         self.assertEquals("# 0123456789012345678901234567890123456789012345678901234567890123456789012345 #\n# 6789012345678901234567890123456789012345678901234567890123456789012345678901 #\n# 2345678901234567890123456789012345678901234567890123456789012345678901234567 #\n# 890123456789012345678901234567890123456789012345678901234567890123456789     #", result)
 
+    def test_write_template_file(self):
+        # test ignore_pathes=True
+        path = "/a/b/c"
+        tmp_file_path = tempfile.mkstemp()[1]
+        tmp_file = open(tmp_file_path, "w")
+        tmp_file_header = template_helper.template_header(tmp_file_path, symbol="#")
+        tmp_file.write("""%(header)s
+
+        Some text file
+        content""" % {"header": tmp_file_header})
+        tmp_file.close()
+        template_helper.write_template_file("""%(header)s
+
+        Some text file
+        content 2""" % {"header": tmp_file_header}, tmp_file_path, check_output=True, difftool="meld", ignore_pathes=True, comment_symbol="#") # @TODO: automatize should show diff with `2` as difference
+
+        tmp_file_path = tempfile.mkstemp()[1]
+        tmp_file = open(tmp_file_path, "w")
+        tmp_file_header = template_helper.template_header(tmp_file_path, symbol="#")
+        tmp_file.write("""%(header)s
+
+        Some text file
+        content""" % {"header": tmp_file_header})
+        tmp_file.close()
+        header_different = template_helper.template_header(path, symbol="#")
+        template_helper.write_template_file("""%(header_different)s
+
+        Some text file
+        content 2""" % {"header_different": header_different}, tmp_file_path, check_output=True, difftool="meld", ignore_pathes=True, comment_symbol="#")
+
 if __name__ == "__main__":
     unittest.main()
-

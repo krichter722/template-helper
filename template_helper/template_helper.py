@@ -34,6 +34,7 @@ import subprocess as sp
 import python_essentials
 import python_essentials.lib
 import python_essentials.lib.os_utils as os_utils
+import re
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -42,8 +43,10 @@ ch.setLevel(logging.INFO)
 logger.addHandler(ch)
 
 difftool_default = "meld"
+comment_symbol_default = "#"
+pathes_re = "/?(.+/)+.+"
 
-def template_header(tmpl_file_path, symbol="#"):
+def template_header(tmpl_file_path, symbol=comment_symbol_default):
     """
     Generates line breaks for a one or multiline path statement in the "Don't
     modify statement" in a template output file. Rather than dealing with an
@@ -86,32 +89,32 @@ def template_header_xml(tmpl_file_path):
             ret_value += "\n"
     return ret_value
 
-
-def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_default):
+def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_default, ignore_pathes=True, comment_symbol=comment_symbol_default):
     """writes `tmpl_str` into the path pointed to by
     `target`. If `check_output` is `True` and the file pointed to by
     `target` exists its content is compared to the generated `str` and the
     `difftool` command is invoked with the file pointed to by `target` and the
     generated `str` written into a temporary file (because `melt` only
     accepts file paths as argument) if the two don't match.
-    """
+
+    The `ignore_pathes` flag allows to skip all pathes matching %(pathes_re)s.
+    It requires knowledge about the comment symbol being used in the template
+    helper.
+    """ % {"pathes_re": pathes_re}
+    if comment_symbol is None:
+        raise ValueError("comment_symbol mustn't be None")
     # check existence and executability of difftool only if needed
     if os.path.exists(target) and os.path.isdir(target):
         raise ValueError("target '%s' exists and is a directory" % (target,))
     if check_output and os.path.exists(target):
         target_file = open(target, "r")
         target_file_content = target_file.read()
-        target_file.close()
-        if tmpl_str != target_file_content:
+        def __handle_diff__(file0, file1):
             # check whether difftool exists and is executable
             if os_utils.which(difftool) is None:
                 raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
             logger.warn("template content doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
-            tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
-            logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
-            os.write(tmpl_str_temp_file, tmpl_str)
-            os.close(tmpl_str_temp_file)
-            difftool_cmds = [difftool, target, tmpl_str_temp_file_path]
+            difftool_cmds = [difftool, file0, file1]
             logger.info("invoking difftool command '%s' in order to visualize changes" % (str.join(" ", difftool_cmds),))
             sp.check_call(difftool_cmds)
             answer = None
@@ -119,6 +122,42 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
                 answer = raw_input("Proceed with script (y/n)? ")
             if answer == "n":
                 raise RuntimeError("Aborted by user")
+        if not ignore_pathes:
+            if tmpl_str != target_file_content:
+                tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
+                logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
+                os.write(tmpl_str_temp_file, tmpl_str)
+                os.close(tmpl_str_temp_file)
+                __handle_diff__(target, tmpl_str_temp_file_path)
+        else:
+            target_file_lines = target_file_content.split("\n")
+            tmpl_str_lines = tmpl_str.split("\n")
+            pathes_re_complete = "%s %s[\\W]+%s" % (comment_symbol, pathes_re, comment_symbol)
+            target_match_found = False
+            tmpl_match_found = False
+            for target_file_line in target_file_lines:
+               if re.match(pathes_re_complete, target_file_line) != None:
+                   target_file_lines.pop(target_file_lines.index(target_file_line))
+                   if target_match_found:
+                       raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
+                   target_match_found = True
+            for tmpl_str_line in tmpl_str_lines:
+               if re.match(pathes_re_complete, tmpl_str_line) != None:
+                   tmpl_str_lines.pop(tmpl_str_lines.index(tmpl_str_line))
+                   if tmpl_match_found:
+                       raise RuntimeError("more than one line in target file '%s' matches regular expression '%s'" % (target, pathes_re_complete))
+                   tmpl_match_found = True
+            if target_file_lines != tmpl_str_lines:
+                target_lines_tmp_file_path = tempfile.mkstemp()[1]
+                tmpl_lines_tmp_file_path = tempfile.mkstemp()[1]
+                target_lines_tmp_file = open(target_lines_tmp_file_path, "w")
+                tmpl_lines_tmp_file = open(tmpl_lines_tmp_file_path, "w")
+                target_lines_tmp_file.writelines(target_file_lines)
+                tmpl_lines_tmp_file.writelines(tmpl_str_lines)
+                target_lines_tmp_file.close()
+                tmpl_lines_tmp_file.close()
+                __handle_diff__(target_lines_tmp_file_path, tmpl_lines_tmp_file_path)
+        target_file.close()
     target_parent = os.path.dirname(target)
     if not os.path.exists(target_parent):
         os.makedirs(target_parent)
@@ -128,4 +167,3 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
     t_file.flush()
     t_file.close()
     logger.info("created %s" % (target,))
-
