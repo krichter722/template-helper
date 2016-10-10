@@ -152,8 +152,8 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
                 tmpl_lines_tmp_file_path = tempfile.mkstemp()[1]
                 target_lines_tmp_file = open(target_lines_tmp_file_path, "w")
                 tmpl_lines_tmp_file = open(tmpl_lines_tmp_file_path, "w")
-                target_lines_tmp_file.writelines(target_file_lines)
-                tmpl_lines_tmp_file.writelines(tmpl_str_lines)
+                target_lines_tmp_file.writelines([i+"\n" for i in target_file_lines])
+                tmpl_lines_tmp_file.writelines([i+"\n" for i in tmpl_str_lines])
                 target_lines_tmp_file.close()
                 tmpl_lines_tmp_file.close()
                 __handle_diff__(target_lines_tmp_file_path, tmpl_lines_tmp_file_path)
