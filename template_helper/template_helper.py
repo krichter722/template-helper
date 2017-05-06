@@ -113,7 +113,7 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
             # check whether difftool exists and is executable
             if os_utils.which(difftool) is None:
                 raise ValueError("specified difftool '%s' isn't available or not executable" % (difftool,))
-            logger.warn("template content doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
+            logger.warn("template result doesn't match with content of existing target file '%s', opening difftool '%s' in order to investigate" % (target, difftool))
             difftool_cmds = [difftool, file0, file1]
             logger.info("invoking difftool command '%s' in order to visualize changes" % (str.join(" ", difftool_cmds),))
             sp.check_call(difftool_cmds)
@@ -125,7 +125,7 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
         if not ignore_pathes:
             if tmpl_str != target_file_content:
                 tmpl_str_temp_file, tmpl_str_temp_file_path = tempfile.mkstemp(text=True)
-                logger.info("writing template content for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
+                logger.info("writing template result for target '%s' into temporary file '%s' in order to be able to pass it to difftool" % (target, tmpl_str_temp_file_path,))
                 os.write(tmpl_str_temp_file, tmpl_str)
                 os.close(tmpl_str_temp_file)
                 __handle_diff__(target, tmpl_str_temp_file_path)
