@@ -133,7 +133,10 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
             # search for one or more (sequential) lines which match pathes_re and the surrounding comment symbols; fail if another line matching the pattern is found
             target_file_lines = target_file_content.split("\n")
             tmpl_str_lines = tmpl_str.split("\n")
-            pathes_re_complete = "%s %s/?[\\s]+%s" % (comment_symbol, pathes_re, comment_symbol)
+            if comment_symbol != "":
+                pathes_re_complete = "%s %s/?[\\s]+%s" % (comment_symbol, pathes_re, comment_symbol)
+            else:
+                pathes_re_complete = "%s/?" % (pathes_re,)
             target_match_found = False
             tmpl_match_found = False
             target_preceeding_match = False # whether the preceeding line has been a match (necessary to solve context sensitive problem based on lines)
