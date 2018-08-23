@@ -118,8 +118,11 @@ def write_template_file(tmpl_str, target, check_output=True, difftool=difftool_d
             logger.info("invoking difftool command '%s' in order to visualize changes" % (str.join(" ", difftool_cmds),))
             sp.check_call(difftool_cmds)
             answer = None
-            while answer != "y" and answer != "n":
-                answer = raw_input("Proceed with script (y/n)? ")
+            while answer != "y" and answer != "n" and answer != "s":
+                answer = raw_input("Proceed with script yes/no (aborts the script)/skip (the generation of file '%s') (y/n/s)? " % (target,))
+            if answer == "s":
+                logger.info("skipping generation of file '%s' as requested by input" % (target,))
+                return
             if answer == "n":
                 raise RuntimeError("Aborted by user")
         if not ignore_pathes:
